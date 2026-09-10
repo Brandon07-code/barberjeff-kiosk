@@ -1,4 +1,4 @@
-﻿export type ServiceCategory = 'SERVICIOS' | 'EXTRAS';
+export type ServiceCategory = 'SERVICIOS' | 'EXTRAS';
 
 export interface ServiceItem {
   id: string;
@@ -56,9 +56,11 @@ export interface BarberSettings {
   phone: string;
   nequiNumber: string;
   nequiHolder: string;
+  nequiQrImage?: string; // base64 or URL of real Nequi QR
   bancolombiaAccount: string;
   bancolombiaType: string;
   bancolombiaHolder: string;
+  bancolombiaQrImage?: string; // base64 or URL of real Bancolombia QR
   wifiSsid: string;
   wifiPass: string;
 }

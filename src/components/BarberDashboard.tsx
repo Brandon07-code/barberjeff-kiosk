@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bell, 
   Volume2, 
@@ -389,7 +389,93 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              {/* QR Upload Section */}
+              <div className="border-t border-dark-700/80 pt-3 space-y-3">
+                <span className="text-gold-400 font-bold block text-xs uppercase tracking-wider">
+                  📸 Fotos de tus Códigos QR Oficiales (Nequi / Bancolombia)
+                </span>
+                <p className="text-[11px] text-slate-400 leading-snug">
+                  Descarga o toma captura a tu QR en tu app Nequi/Bancolombia y súbelo aquí para que los clientes lo escaneen directamente sin errores.
+                </p>
+
+                {/* Nequi QR Uploader */}
+                <div className="bg-dark-900/80 p-3 rounded-2xl border border-purple-900/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-purple-300 font-bold text-xs">QR Oficial de Nequi</span>
+                    {localSettings.nequiQrImage && (
+                      <button
+                        type="button"
+                        onClick={() => setLocalSettings({ ...localSettings, nequiQrImage: undefined })}
+                        className="text-[10px] text-rose-400 hover:underline"
+                      >
+                        Quitar imagen
+                      </button>
+                    )}
+                  </div>
+                  {localSettings.nequiQrImage && (
+                    <img
+                      src={localSettings.nequiQrImage}
+                      alt="Preview QR Nequi"
+                      className="w-20 h-20 object-contain rounded-lg border border-purple-800/60 bg-white p-1"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setLocalSettings({ ...localSettings, nequiQrImage: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-purple-900/40 file:text-purple-300 hover:file:bg-purple-900/60 cursor-pointer"
+                  />
+                </div>
+
+                {/* Bancolombia QR Uploader */}
+                <div className="bg-dark-900/80 p-3 rounded-2xl border border-amber-900/40 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-amber-300 font-bold text-xs">QR Oficial de Bancolombia</span>
+                    {localSettings.bancolombiaQrImage && (
+                      <button
+                        type="button"
+                        onClick={() => setLocalSettings({ ...localSettings, bancolombiaQrImage: undefined })}
+                        className="text-[10px] text-rose-400 hover:underline"
+                      >
+                        Quitar imagen
+                      </button>
+                    )}
+                  </div>
+                  {localSettings.bancolombiaQrImage && (
+                    <img
+                      src={localSettings.bancolombiaQrImage}
+                      alt="Preview QR Bancolombia"
+                      className="w-20 h-20 object-contain rounded-lg border border-amber-800/60 bg-white p-1"
+                    />
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          setLocalSettings({ ...localSettings, bancolombiaQrImage: reader.result as string });
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    className="block w-full text-xs text-slate-400 file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-900/40 file:text-amber-300 hover:file:bg-amber-900/60 cursor-pointer"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 pt-2">
                 <div>
                   <label className="text-slate-400 font-semibold">WiFi Nombre (SSID):</label>
                   <input

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { X, Copy, Check, Send, Banknote } from 'lucide-react';
 import { CartItem, PaymentMethod, BarberSettings } from '../types';
@@ -212,33 +212,39 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
           {/* Dynamic Payment Details Area */}
           {paymentMethod === 'nequi' && (
             <div className="bg-purple-950/25 border border-purple-900/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5">
-              {qrDataUrl && (
-                <div className="bg-white p-2.5 rounded-2xl shadow-xl shrink-0">
-                  <img src={qrDataUrl} alt="QR Nequi" className="w-36 h-36 object-contain" />
-                  <p className="text-[10px] text-center text-dark-900 font-bold mt-1">Escanea desde Nequi</p>
-                </div>
-              )}
+              <div className="bg-white p-3 rounded-2xl shadow-xl shrink-0 flex flex-col items-center">
+                <img 
+                  src={settings.nequiQrImage || qrDataUrl} 
+                  alt="QR Nequi Oficial" 
+                  className="w-40 h-40 object-contain rounded-lg" 
+                />
+                <span className="text-[10px] text-purple-900 font-extrabold mt-1 uppercase tracking-wider">
+                  {settings.nequiQrImage ? 'QR Oficial Nequi' : 'Escanea desde Nequi'}
+                </span>
+              </div>
 
               <div className="space-y-3 text-center sm:text-left flex-1">
                 <div>
                   <span className="text-xs text-purple-300 font-semibold uppercase tracking-wider">Número Nequi:</span>
                   <div className="flex items-center justify-center sm:justify-start space-x-2 mt-0.5">
-                    <span className="text-xl font-black text-white font-mono">{settings.nequiNumber}</span>
+                    <span className="text-2xl font-black text-white font-mono tracking-wide">{settings.nequiNumber}</span>
                     <button
                       type="button"
                       onClick={() => copyToClipboard(settings.nequiNumber)}
-                      className="p-1.5 rounded-lg bg-purple-800/50 text-purple-300 hover:text-white transition-colors"
+                      className="p-2 rounded-xl bg-purple-800/50 text-purple-300 hover:text-white transition-colors flex items-center space-x-1 text-xs"
                       title="Copiar número"
                     >
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      <span className="font-bold">{copied ? '¡Copiado!' : 'Copiar'}</span>
                     </button>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Titular: {settings.nequiHolder}</p>
+                  <p className="text-xs text-slate-400 mt-1">Titular: <strong className="text-slate-200">{settings.nequiHolder}</strong></p>
                 </div>
 
-                <div className="text-xs text-slate-300 space-y-1 bg-dark-900/60 p-2.5 rounded-xl border border-purple-900/40">
-                  <p>1. Transfiere exactamente <strong>{formatCOP(total)}</strong></p>
-                  <p>2. Presiona el botón amarillo para confirmar tu orden.</p>
+                <div className="text-xs text-slate-300 space-y-1 bg-dark-900/70 p-3 rounded-xl border border-purple-900/40 leading-relaxed">
+                  <p>1. Abre tu app <strong>Nequi</strong> en tu celular.</p>
+                  <p>2. Escanea el código QR o envía a la llave <strong>{settings.nequiNumber}</strong>.</p>
+                  <p>3. Monto exacto: <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong>.</p>
                 </div>
               </div>
             </div>
@@ -246,32 +252,38 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
           {paymentMethod === 'bancolombia' && (
             <div className="bg-amber-950/25 border border-amber-900/50 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row items-center gap-5">
-              {qrDataUrl && (
-                <div className="bg-white p-2.5 rounded-2xl shadow-xl shrink-0">
-                  <img src={qrDataUrl} alt="QR Bancolombia" className="w-36 h-36 object-contain" />
-                  <p className="text-[10px] text-center text-dark-900 font-bold mt-1">Escanea con Bancolombia</p>
-                </div>
-              )}
+              <div className="bg-white p-3 rounded-2xl shadow-xl shrink-0 flex flex-col items-center">
+                <img 
+                  src={settings.bancolombiaQrImage || qrDataUrl} 
+                  alt="QR Bancolombia Oficial" 
+                  className="w-40 h-40 object-contain rounded-lg" 
+                />
+                <span className="text-[10px] text-dark-900 font-extrabold mt-1 uppercase tracking-wider">
+                  {settings.bancolombiaQrImage ? 'QR Oficial Bancolombia' : 'Escanea con Bancolombia'}
+                </span>
+              </div>
 
               <div className="space-y-3 text-center sm:text-left flex-1">
                 <div>
                   <span className="text-xs text-amber-300 font-semibold uppercase tracking-wider">Cuenta {settings.bancolombiaType}:</span>
                   <div className="flex items-center justify-center sm:justify-start space-x-2 mt-0.5">
-                    <span className="text-xl font-black text-white font-mono">{settings.bancolombiaAccount}</span>
+                    <span className="text-2xl font-black text-white font-mono tracking-wide">{settings.bancolombiaAccount}</span>
                     <button
                       type="button"
                       onClick={() => copyToClipboard(settings.bancolombiaAccount)}
-                      className="p-1.5 rounded-lg bg-amber-800/50 text-amber-300 hover:text-white transition-colors"
+                      className="p-2 rounded-xl bg-amber-800/50 text-amber-300 hover:text-white transition-colors flex items-center space-x-1 text-xs"
                     >
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+                      <span className="font-bold">{copied ? '¡Copiado!' : 'Copiar'}</span>
                     </button>
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">Titular: {settings.bancolombiaHolder}</p>
+                  <p className="text-xs text-slate-400 mt-1">Titular: <strong className="text-slate-200">{settings.bancolombiaHolder}</strong></p>
                 </div>
 
-                <div className="text-xs text-slate-300 space-y-1 bg-dark-900/60 p-2.5 rounded-xl border border-amber-900/40">
-                  <p>1. Transfiere <strong>{formatCOP(total)}</strong> a la cuenta</p>
-                  <p>2. Presiona Confirmar para avisarle al barbero.</p>
+                <div className="text-xs text-slate-300 space-y-1 bg-dark-900/70 p-3 rounded-xl border border-amber-900/40 leading-relaxed">
+                  <p>1. Abre tu app <strong>Bancolombia</strong>.</p>
+                  <p>2. Escanea el QR o transfiere a la cuenta <strong>{settings.bancolombiaAccount}</strong>.</p>
+                  <p>3. Monto exacto: <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong>.</p>
                 </div>
               </div>
             </div>
