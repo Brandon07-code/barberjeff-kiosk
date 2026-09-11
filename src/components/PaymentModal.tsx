@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
-import { X, Copy, Check, Send, Banknote } from 'lucide-react';
-import { CartItem, PaymentMethod, BarberSettings } from '../types';
+import { X, Copy, Check, Send, Banknote, Clock, Calendar } from 'lucide-react';
+import { CartItem, PaymentMethod, BarberSettings, TurnType } from '../types';
 import { formatCOP } from '../services/orders';
 import { soundService } from '../services/sound';
 
@@ -13,6 +13,8 @@ interface PaymentModalProps {
     customerName: string;
     customerPhone: string;
     paymentMethod: PaymentMethod;
+    turnType?: TurnType;
+    preferredTime?: string;
     notes?: string;
   }) => Promise<void>;
 }
@@ -25,6 +27,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 }) => {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [turnType, setTurnType] = useState<TurnType>('sala_espera');
+  const [preferredTime, setPreferredTime] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('nequi');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,14 +37,13 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
   const total = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // Generate QR code based on method and amount
+  // Generate QR fallback
   useEffect(() => {
     async function generateQR() {
       try {
         let payload = '';
         if (paymentMethod === 'nequi') {
-          // Standard Colombian Nequi transfer URI or human readable reference
-          payload = `nequi://transfer?phone=${settings.nequiNumber}&amount=${total}&reference=BarberJeff`;
+          payload = `nequi://transfer?phone=${settings.nequiNumber}&amount=${total}&reference=BarberiaJyM`;
         } else if (paymentMethod === 'bancolombia') {
           payload = `bancolombia://transfer?account=${settings.bancolombiaAccount}&amount=${total}&type=${settings.bancolombiaType}`;
         }
@@ -50,7 +53,7 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             width: 280,
             margin: 1.5,
             color: {
-              dark: '#0B0F17',
+              dark: '#000000',
               light: '#FFFFFF'
             }
           });
@@ -82,30 +85,35 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
       await onSubmitOrder({
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim(),
+        turnType,
+        preferredTime: turnType === 'cita_previa' ? preferredTime : undefined,
         paymentMethod,
         notes: notes.trim()
       });
     } catch (err) {
-      console.error(err);
+      console.error('Error in order submit:', err);
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/85 backdrop-blur-md animate-fadeIn overflow-y-auto">
-      <div className="bg-dark-800 border border-dark-600 rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl relative my-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-fadeIn overflow-y-auto">
+      <div className="bg-dark-900 border border-gold-500/30 rounded-3xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl shadow-gold-500/10 relative my-auto">
         {/* Header */}
-        <div className="p-5 sm:p-6 border-b border-dark-700 flex items-center justify-between shrink-0">
+        <div className="p-5 sm:p-6 border-b border-dark-750 flex items-center justify-between shrink-0 bg-black/50">
           <div>
-            <h3 className="text-xl font-bold text-white">Finalizar Pedido</h3>
+            <div className="flex items-center space-x-2">
+              <span className="text-gold-400 font-extrabold text-xs uppercase tracking-widest">JyM Barbería</span>
+            </div>
+            <h3 className="text-xl font-bold text-white mt-0.5">Finalizar Pedido & Turno</h3>
             <p className="text-xs text-slate-400 mt-0.5">
-              Total a pagar: <strong className="text-gold-400 font-extrabold text-sm">{formatCOP(total)}</strong>
+              Total a pagar: <strong className="text-gold-400 font-extrabold text-base">{formatCOP(total)}</strong>
             </p>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-full bg-dark-700 hover:bg-dark-600 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-full bg-dark-800 hover:bg-dark-700 text-slate-400 hover:text-white transition-colors border border-dark-700"
           >
             <X className="w-5 h-5" />
           </button>
@@ -113,10 +121,75 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
 
         {/* Scrollable Form Body */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-6 overflow-y-auto space-y-6">
-          {/* Client Details */}
+          {/* 1. Modalidad de Atención */}
+          <div className="space-y-2">
+            <label className="block text-xs uppercase tracking-wider font-bold text-gold-400">
+              ¿Cómo deseas ser atendido hoy?
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  soundService.playTapSound();
+                  setTurnType('sala_espera');
+                }}
+                className={`p-3 rounded-2xl border text-left flex items-start space-x-3 transition-all ${
+                  turnType === 'sala_espera'
+                    ? 'bg-gold-500/15 border-gold-500 text-white shadow-md shadow-gold-500/10'
+                    : 'bg-dark-850 border-dark-750 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className={`p-2 rounded-xl shrink-0 ${turnType === 'sala_espera' ? 'bg-gold-500 text-black' : 'bg-dark-750 text-slate-400'}`}>
+                  <Clock className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs sm:text-sm text-white">Turno en Sala de Espera</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Atención por orden de llegada con Jeffer</p>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  soundService.playTapSound();
+                  setTurnType('cita_previa');
+                }}
+                className={`p-3 rounded-2xl border text-left flex items-start space-x-3 transition-all ${
+                  turnType === 'cita_previa'
+                    ? 'bg-gold-500/15 border-gold-500 text-white shadow-md shadow-gold-500/10'
+                    : 'bg-dark-850 border-dark-750 text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                <div className={`p-2 rounded-xl shrink-0 ${turnType === 'cita_previa' ? 'bg-gold-500 text-black' : 'bg-dark-750 text-slate-400'}`}>
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs sm:text-sm text-white">Cita Previa Agendada</h4>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Ya cuadré el turno por WhatsApp</p>
+                </div>
+              </button>
+            </div>
+
+            {turnType === 'cita_previa' && (
+              <div className="pt-2 animate-fadeIn">
+                <label className="block text-[11px] text-slate-300 font-semibold mb-1">
+                  Hora acordada con Jeffer (ej. 4:30 PM):
+                </label>
+                <input
+                  type="text"
+                  placeholder="Ej. 4:00 PM"
+                  value={preferredTime}
+                  onChange={(e) => setPreferredTime(e.target.value)}
+                  className="w-full bg-dark-950 border border-gold-500/30 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-gold-400 text-sm"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* 2. Client Details */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
+              <label className="block text-xs uppercase tracking-wider font-bold text-gold-400 mb-1.5">
                 ¿A nombre de quién? *
               </label>
               <input
@@ -125,27 +198,27 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 placeholder="Tu nombre (ej. Carlos)"
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
-                className="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400 text-sm"
+                className="w-full bg-dark-950 border border-dark-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-gold-400 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
-                Tu WhatsApp (Opcional)
+              <label className="block text-xs uppercase tracking-wider font-bold text-gold-400 mb-1.5">
+                Tu WhatsApp
               </label>
               <input
                 type="tel"
                 placeholder="310 123 4567"
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
-                className="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400 text-sm"
+                className="w-full bg-dark-950 border border-dark-700 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-gold-400 text-sm"
               />
             </div>
           </div>
 
-          {/* Payment Method Selector */}
+          {/* 3. Payment Method Selector */}
           <div className="space-y-3">
-            <label className="block text-xs uppercase tracking-wider font-semibold text-slate-300">
+            <label className="block text-xs uppercase tracking-wider font-bold text-gold-400">
               Selecciona Método de Pago
             </label>
 
@@ -159,8 +232,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 }}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center space-y-2 transition-all ${
                   paymentMethod === 'nequi'
-                    ? 'bg-purple-900/30 border-purple-500 text-white shadow-lg shadow-purple-500/10'
-                    : 'bg-dark-900/60 border-dark-700 text-slate-400 hover:text-white'
+                    ? 'bg-purple-950/40 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                    : 'bg-dark-950 border-dark-750 text-slate-400 hover:text-white'
                 }`}
               >
                 <div className="w-8 h-8 rounded-full bg-purple-600 text-white font-black text-xs flex items-center justify-center">
@@ -178,11 +251,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 }}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center space-y-2 transition-all ${
                   paymentMethod === 'bancolombia'
-                    ? 'bg-amber-900/30 border-amber-400 text-white shadow-lg shadow-amber-400/10'
-                    : 'bg-dark-900/60 border-dark-700 text-slate-400 hover:text-white'
+                    ? 'bg-amber-950/40 border-amber-400 text-white shadow-lg shadow-amber-400/10'
+                    : 'bg-dark-950 border-dark-750 text-slate-400 hover:text-white'
                 }`}
               >
-                <div className="w-8 h-8 rounded-full bg-yellow-400 text-dark-900 font-black text-xs flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-yellow-400 text-dark-950 font-black text-xs flex items-center justify-center">
                   B
                 </div>
                 <span className="text-xs font-bold">Bancolombia</span>
@@ -197,8 +270,8 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                 }}
                 className={`p-3.5 rounded-2xl border flex flex-col items-center justify-center space-y-2 transition-all ${
                   paymentMethod === 'efectivo'
-                    ? 'bg-emerald-900/30 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
-                    : 'bg-dark-900/60 border-dark-700 text-slate-400 hover:text-white'
+                    ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
+                    : 'bg-dark-950 border-dark-750 text-slate-400 hover:text-white'
                 }`}
               >
                 <div className="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center">
@@ -231,20 +304,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     <button
                       type="button"
                       onClick={() => copyToClipboard(settings.nequiNumber)}
-                      className="p-2 rounded-xl bg-purple-800/50 text-purple-300 hover:text-white transition-colors flex items-center space-x-1 text-xs"
-                      title="Copiar número"
+                      className="p-2 rounded-xl bg-purple-800/50 text-purple-300 hover:text-white transition-colors flex items-center space-x-1 text-xs font-bold"
                     >
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      <span className="font-bold">{copied ? '¡Copiado!' : 'Copiar'}</span>
+                      <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
                     </button>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Titular: <strong className="text-slate-200">{settings.nequiHolder}</strong></p>
                 </div>
 
-                <div className="text-xs text-slate-300 space-y-1 bg-dark-900/70 p-3 rounded-xl border border-purple-900/40 leading-relaxed">
-                  <p>1. Abre tu app <strong>Nequi</strong> en tu celular.</p>
-                  <p>2. Escanea el código QR o envía a la llave <strong>{settings.nequiNumber}</strong>.</p>
-                  <p>3. Monto exacto: <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong>.</p>
+                <div className="text-xs text-slate-300 space-y-1 bg-black/60 p-3 rounded-xl border border-purple-900/40 leading-relaxed">
+                  <p>1. Transfiere exactamente <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong>.</p>
+                  <p>2. Al tocar el botón dorado, se enviará el pedido a Jeffer.</p>
                 </div>
               </div>
             </div>
@@ -271,19 +342,18 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
                     <button
                       type="button"
                       onClick={() => copyToClipboard(settings.bancolombiaAccount)}
-                      className="p-2 rounded-xl bg-amber-800/50 text-amber-300 hover:text-white transition-colors flex items-center space-x-1 text-xs"
+                      className="p-2 rounded-xl bg-amber-800/50 text-amber-300 hover:text-white transition-colors flex items-center space-x-1 text-xs font-bold"
                     >
                       {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                      <span className="font-bold">{copied ? '¡Copiado!' : 'Copiar'}</span>
+                      <span>{copied ? '¡Copiado!' : 'Copiar'}</span>
                     </button>
                   </div>
                   <p className="text-xs text-slate-400 mt-1">Titular: <strong className="text-slate-200">{settings.bancolombiaHolder}</strong></p>
                 </div>
 
-                <div className="text-xs text-slate-300 space-y-1 bg-dark-900/70 p-3 rounded-xl border border-amber-900/40 leading-relaxed">
-                  <p>1. Abre tu app <strong>Bancolombia</strong>.</p>
-                  <p>2. Escanea el QR o transfiere a la cuenta <strong>{settings.bancolombiaAccount}</strong>.</p>
-                  <p>3. Monto exacto: <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong>.</p>
+                <div className="text-xs text-slate-300 space-y-1 bg-black/60 p-3 rounded-xl border border-amber-900/40 leading-relaxed">
+                  <p>1. Transfiere <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong>.</p>
+                  <p>2. Al confirmar, se abrirá el WhatsApp para enviar la orden.</p>
                 </div>
               </div>
             </div>
@@ -297,23 +367,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
               <div className="space-y-0.5">
                 <h4 className="text-sm font-bold text-white">Pago en Efectivo</h4>
                 <p className="text-xs text-slate-400">
-                  Pagarás los <strong>{formatCOP(total)}</strong> directamente en caja una vez finalice tu servicio.
+                  Pagarás los <strong className="text-gold-400 font-bold">{formatCOP(total)}</strong> en caja al terminar tu servicio.
                 </p>
               </div>
             </div>
           )}
 
-          {/* Optional Notes */}
+          {/* 4. Indicaciones opcionales */}
           <div>
-            <label className="block text-xs uppercase tracking-wider font-semibold text-slate-300 mb-1.5">
-              Indicaciones especiales o cómo te gusta el corte (Opcional)
+            <label className="block text-xs uppercase tracking-wider font-semibold text-slate-400 mb-1.5">
+              Indicaciones especiales o notas para Jeffer (Opcional)
             </label>
             <textarea
               rows={2}
-              placeholder="Ej. 'Bien bajito a los lados', 'No tocar mucho la barba'"
+              placeholder="Ej. 'Degradado medio en V', 'No bajar mucho arriba', etc."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full bg-dark-900 border border-dark-600 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-gold-400 text-sm"
+              className="w-full bg-dark-950 border border-dark-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-600 focus:outline-none focus:border-gold-400 text-sm"
             ></textarea>
           </div>
 
@@ -322,11 +392,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({
             <button
               type="submit"
               disabled={isSubmitting || !customerName.trim()}
-              className="w-full py-4 rounded-2xl bg-gradient-to-r from-gold-500 via-amber-500 to-yellow-500 hover:from-gold-400 hover:to-amber-400 text-dark-900 font-extrabold text-base shadow-xl shadow-gold-500/25 active:scale-95 transition-all flex items-center justify-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="w-full py-4 rounded-2xl bg-gradient-to-r from-gold-500 via-gold-400 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-black font-black text-base shadow-xl shadow-gold-500/20 active:scale-95 transition-all flex items-center justify-center space-x-2.5 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               <Send className="w-5 h-5" />
-              <span>{isSubmitting ? 'Enviando orden a Jeffer...' : 'Enviar Pedido y Notificar'}</span>
+              <span>{isSubmitting ? 'Guardando orden...' : 'Confirmar Pedido y Enviar a WhatsApp'}</span>
             </button>
+            <p className="text-[11px] text-center text-slate-400 mt-2">
+              Se guardará tu turno en el sistema y se abrirá WhatsApp con el resumen listo para Jeffer.
+            </p>
           </div>
         </form>
       </div>

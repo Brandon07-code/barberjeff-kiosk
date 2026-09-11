@@ -72,23 +72,23 @@ export const BarberDashboard: React.FC<BarberDashboardProps> = ({
   const completedCount = orders.filter((o) => o.status === 'completed').length;
 
   return (
-    <div className="min-h-screen bg-dark-900 text-white flex flex-col">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Top Navbar */}
-      <header className="bg-dark-800 border-b border-dark-700 px-4 sm:px-8 py-3.5 sticky top-0 z-30 flex items-center justify-between">
+      <header className="bg-dark-900 border-b border-gold-500/20 px-4 sm:px-8 py-3.5 sticky top-0 z-30 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <button
             onClick={onBackToKiosk}
-            className="flex items-center space-x-2 bg-dark-700 hover:bg-dark-600 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors"
+            className="flex items-center space-x-2 bg-dark-800 hover:bg-dark-750 text-slate-300 hover:text-white px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors border border-dark-700"
           >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Modo Kiosco Tablet</span>
+            <ArrowLeft className="w-4 h-4 text-gold-400" />
+            <span>Kiosco JyM</span>
           </button>
 
           <div className="hidden sm:block h-6 w-px bg-dark-700"></div>
 
           <div>
-            <h1 className="font-extrabold text-base sm:text-lg text-white">Panel de Control Barbero</h1>
-            <p className="text-xs text-slate-400">Atención en vivo para {settings.barberName}</p>
+            <h1 className="font-extrabold text-base sm:text-lg text-white">Panel de Control — JyM</h1>
+            <p className="text-xs text-gold-400/80">Barbería & Perfumería • Jeffer</p>
           </div>
         </div>
 

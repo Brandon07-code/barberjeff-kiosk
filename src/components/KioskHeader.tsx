@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Wifi, ShoppingBag, ShieldCheck, X } from 'lucide-react';
 import { BarberSettings } from '../types';
 import { soundService } from '../services/sound';
@@ -8,52 +8,73 @@ interface KioskHeaderProps {
   cartCount: number;
   onOpenCart: () => void;
   onGoToDashboard: () => void;
+  onOpenQueue: () => void;
+  activeOrdersCount: number;
 }
 
 export const KioskHeader: React.FC<KioskHeaderProps> = ({
   settings,
   cartCount,
   onOpenCart,
-  onGoToDashboard
+  onGoToDashboard,
+  onOpenQueue,
+  activeOrdersCount
 }) => {
   const [showWifiModal, setShowWifiModal] = useState(false);
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-dark-900/90 backdrop-blur-md border-b border-dark-700 px-4 lg:px-8 py-3.5">
+      <header className="sticky top-0 z-40 bg-black/95 backdrop-blur-md border-b border-gold-500/20 px-4 lg:px-8 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           {/* Brand Logo & Name */}
           <div className="flex items-center space-x-3 cursor-pointer">
             <div className="relative">
-              <img
-                src="https://assets.olaclick.app/companies/logos/92be0531-97f1-4a9b-9555-c715fc1e0cb1.png"
-                alt="BarberJeff"
-                className="w-11 h-11 rounded-full object-cover border-2 border-gold-400 shadow-lg shadow-gold-500/20"
-              />
-              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-dark-900 rounded-full"></span>
+              <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-black via-dark-800 to-gold-600/40 border-2 border-gold-500 flex items-center justify-center shadow-lg shadow-gold-500/20 text-gold-400 font-black text-sm tracking-wider">
+                JyM
+              </div>
+              <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-black rounded-full"></span>
             </div>
             <div>
               <div className="flex items-center space-x-1.5">
-                <h1 className="font-bold text-lg text-white tracking-wide">BarberJeff</h1>
-                <span className="text-[10px] uppercase font-bold tracking-widest bg-gold-500/20 text-gold-400 px-1.5 py-0.5 rounded">VIP</span>
+                <h1 className="font-extrabold text-lg text-white tracking-wider">JyM</h1>
+                <span className="text-[10px] uppercase font-extrabold tracking-widest bg-gold-500/20 text-gold-400 px-2 py-0.5 rounded border border-gold-500/30">
+                  VIP
+                </span>
               </div>
-              <p className="text-xs text-slate-400">Barbería & Perfumería JM</p>
+              <p className="text-xs text-gold-400/80 font-medium">Barbería & Perfumería</p>
             </div>
           </div>
 
-          {/* Quick Actions for Client */}
-          <div className="flex items-center space-x-2.5">
+          {/* Quick Actions */}
+          <div className="flex items-center space-x-2 sm:space-x-3">
             {/* WiFi Button */}
             <button
               onClick={() => {
                 soundService.playTapSound();
                 setShowWifiModal(true);
               }}
-              className="flex items-center space-x-1.5 bg-dark-800 hover:bg-dark-700 text-slate-300 hover:text-white px-3 py-2 rounded-xl text-xs font-medium border border-dark-600/60 transition-colors shadow-sm active:scale-95"
+              className="flex items-center space-x-1.5 bg-dark-850 hover:bg-dark-800 text-slate-300 hover:text-white px-3 py-2 rounded-xl text-xs font-medium border border-dark-700 transition-colors shadow-sm active:scale-95"
               title="Ver clave de WiFi"
             >
               <Wifi className="w-4 h-4 text-emerald-400" />
-              <span className="hidden sm:inline">WiFi Gratis</span>
+              <span className="hidden md:inline">WiFi Gratis</span>
+            </button>
+
+            {/* Turnos / Cola en vivo */}
+            <button
+              onClick={() => {
+                soundService.playTapSound();
+                onOpenQueue();
+              }}
+              className="flex items-center space-x-1.5 bg-dark-850 hover:bg-dark-800 text-gold-400 px-3 py-2 rounded-xl text-xs font-semibold border border-gold-500/30 transition-all active:scale-95"
+              title="Ver turnos en sala"
+            >
+              <span>💈 Turnos</span>
+              {activeOrdersCount > 0 && (
+                <span className="bg-gold-500 text-black text-[10px] px-1.5 py-0.2 rounded-full font-black">
+                  {activeOrdersCount}
+                </span>
+              )}
             </button>
 
             {/* Cart Button with Counter */}
@@ -62,24 +83,25 @@ export const KioskHeader: React.FC<KioskHeaderProps> = ({
                 soundService.playTapSound();
                 onOpenCart();
               }}
-              className="relative flex items-center space-x-2 bg-gradient-to-r from-gold-500 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-dark-900 font-bold px-4 py-2 rounded-xl text-sm transition-transform active:scale-95 shadow-md shadow-gold-500/20"
+              className="relative flex items-center space-x-2 bg-gradient-to-r from-gold-500 via-gold-400 to-amber-600 hover:from-gold-400 hover:to-amber-500 text-black font-extrabold px-4 py-2 rounded-xl text-sm transition-transform active:scale-95 shadow-lg shadow-gold-500/20"
             >
               <ShoppingBag className="w-4 h-4" />
               <span>Mi Orden</span>
               {cartCount > 0 && (
-                <span className="bg-dark-900 text-gold-400 text-xs px-2 py-0.5 rounded-full font-extrabold shadow">
+                <span className="bg-black text-gold-400 text-xs px-2 py-0.5 rounded-full font-black shadow">
                   {cartCount}
                 </span>
               )}
             </button>
 
-            {/* Hidden / Subtle Admin access button */}
+            {/* Admin Access (Jeffer) */}
             <button
               onClick={onGoToDashboard}
-              className="p-2 text-dark-600 hover:text-slate-400 rounded-lg transition-colors"
-              title="Panel Barbero (Jeffer)"
+              className="flex items-center space-x-1 p-2 bg-dark-850 hover:bg-dark-800 border border-dark-700 hover:border-gold-500/40 text-slate-400 hover:text-gold-400 rounded-xl text-xs transition-colors"
+              title="Panel Jeffer (Admin)"
             >
               <ShieldCheck className="w-4 h-4" />
+              <span className="hidden lg:inline font-semibold">Jeffer</span>
             </button>
           </div>
         </div>

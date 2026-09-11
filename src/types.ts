@@ -37,11 +37,15 @@ export type PaymentMethod = 'nequi' | 'bancolombia' | 'efectivo';
 
 export type OrderStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 
+export type TurnType = 'sala_espera' | 'cita_previa';
+
 export interface Order {
   id: string;
   orderNumber: number;
   customerName: string;
   customerPhone: string;
+  turnType?: TurnType;
+  preferredTime?: string;
   items: CartItem[];
   total: number;
   paymentMethod: PaymentMethod;

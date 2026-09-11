@@ -1,15 +1,15 @@
-﻿import { ServiceItem, ExtraProduct, BarberSettings } from '../types';
+import { ServiceItem, ExtraProduct, BarberSettings } from '../types';
 
 export const DEFAULT_BARBER_SETTINGS: BarberSettings = {
   barberName: 'Jeffer',
-  shopName: 'BarberJeff',
+  shopName: 'Barbería & Perfumería JyM',
   phone: '573145549069',
   nequiNumber: '3145549069',
   nequiHolder: 'Jeffer Barber',
   bancolombiaAccount: '3145549069',
   bancolombiaType: 'Ahorros a la mano',
   bancolombiaHolder: 'Jeffer Barber',
-  wifiSsid: 'Barbería JM',
+  wifiSsid: 'Barbería JyM',
   wifiPass: 'Chepe2001'
 };
 

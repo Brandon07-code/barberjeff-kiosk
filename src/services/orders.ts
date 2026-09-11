@@ -1,4 +1,4 @@
-﻿import { Order, OrderStatus, BarberSettings } from '../types';
+import { Order, OrderStatus, BarberSettings } from '../types';
 import { db, isFirebaseConfigured } from './firebase';
 import { 
   collection, 
@@ -160,30 +160,49 @@ export function generateWhatsAppLink(order: Order, settings: BarberSettings): st
     efectivo: 'Efectivo en caja'
   };
 
-  let msg = `💈 *NUEVO PEDIDO EN TABLET #${order.orderNumber}* 💈\n\n`;
+  const turnLabel = order.turnType === 'cita_previa'
+    ? `🗓️ Cita Previa (${order.preferredTime || 'Por confirmar'})`
+    : '⏳ Turno por Orden de Llegada (Sala de Espera)';
+
+  let msg = `💈 *NUEVO PEDIDO - BARBERÍA & PERFUMERÍA JyM* 💈\n`;
+  msg += `*Orden #${order.orderNumber}*\n\n`;
   msg += `👤 *Cliente:* ${order.customerName}\n`;
   if (order.customerPhone) {
     msg += `📱 *Teléfono:* ${order.customerPhone}\n`;
   }
-  msg += `\n*Detalle del Pedido:*\n`;
+  msg += `📍 *Atención:* ${turnLabel}\n\n`;
+  msg += `*Detalle de Servicios & Productos:*\n`;
 
   order.items.forEach((item, index) => {
     msg += `${index + 1}. *${item.name}* (x${item.quantity}) - ${formatCOP(item.price * item.quantity)}\n`;
     if (item.selectedTreatments && item.selectedTreatments.length > 0) {
-      msg += `   ✨ _Tratamientos:_ ${item.selectedTreatments.join(', ')}\n`;
+      msg += `   ✨ _Tratamiento gratis:_ ${item.selectedTreatments.join(', ')}\n`;
     }
     if (item.selectedDrink) {
       msg += `   🥤 _Bebida cortesía:_ ${item.selectedDrink}\n`;
     }
   });
 
-  msg += `\n💰 *Total:* ${formatCOP(order.total)}\n`;
-  msg += `💳 *Método de pago:* ${paymentLabels[order.paymentMethod] || order.paymentMethod}\n`;
+  msg += `\n💰 *Total a Cobrar:* ${formatCOP(order.total)}\n`;
+  msg += `💳 *Método de Pago:* ${paymentLabels[order.paymentMethod] || order.paymentMethod}\n`;
   if (order.notes) {
-    msg += `📝 *Nota:* ${order.notes}\n`;
+    msg += `📝 *Nota del Cliente:* "${order.notes}"\n`;
   }
-  msg += `\n_Enviado automáticamente desde la Tablet de BarberJeff._`;
+  msg += `\n_Pedido registrado desde el Kiosco de Autoservicio JyM._`;
 
   const encoded = encodeURIComponent(msg);
   return `https://api.whatsapp.com/send?phone=${settings.phone}&text=${encoded}`;
+}
+
+export function openWhatsAppDirectly(order: Order, settings: BarberSettings): void {
+  const url = generateWhatsAppLink(order, settings);
+  try {
+    const win = window.open(url, '_blank');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+      // Fallback if popup blocked
+      window.location.href = url;
+    }
+  } catch {
+    window.location.href = url;
+  }
 }

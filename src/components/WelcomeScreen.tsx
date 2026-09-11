@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Sparkles, Scissors, Wine, QrCode, ArrowRight } from 'lucide-react';
 import { soundService } from '../services/sound';
 
@@ -15,25 +15,25 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
   return (
     <div className="min-h-[calc(100vh-73px)] flex flex-col justify-between p-4 sm:p-8 max-w-5xl mx-auto animate-fadeIn">
       {/* Top Banner Card */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-dark-800 via-dark-700 to-dark-900 border border-dark-600/80 p-6 sm:p-10 shadow-2xl">
-        <div className="absolute -right-12 -top-12 w-64 h-64 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-black via-dark-900 to-dark-850 border border-gold-500/30 p-6 sm:p-10 shadow-2xl shadow-gold-500/5">
+        <div className="absolute -right-12 -top-12 w-64 h-64 bg-gold-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -left-12 -bottom-12 w-64 h-64 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="relative z-10 max-w-2xl">
-          <div className="inline-flex items-center space-x-2 bg-gold-500/15 border border-gold-500/30 text-gold-400 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-5 shadow-sm">
+          <div className="inline-flex items-center space-x-2 bg-gold-500/15 border border-gold-500/40 text-gold-400 px-4 py-1.5 rounded-full text-xs font-bold mb-5 shadow-sm uppercase tracking-wider">
             <Sparkles className="w-4 h-4 text-gold-400" />
-            <span>Kiosco Táctil de Autoservicio</span>
+            <span>Kiosco & Barbería JyM</span>
           </div>
 
-          <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+          <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight leading-tight">
             Bienvenido a <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-400 via-amber-300 to-yellow-500">
-              BarberJeff
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-gold-300 via-gold-400 to-amber-500 font-serif italic">
+              JyM Barbería & Perfumería
             </span>
           </h2>
 
           <p className="mt-4 text-slate-300 text-sm sm:text-base leading-relaxed">
-            Personaliza tu estilo, elige tu paquete VIP con tratamiento y bebida de cortesía incluida, y disfruta del mejor servicio de barbería en Cartago.
+            Personaliza tu estilo, elige tu paquete VIP con tratamiento y bebida de cortesía incluida, o regístrate en la sala de espera de Jeffer en Cartago.
           </p>
         </div>
       </div>

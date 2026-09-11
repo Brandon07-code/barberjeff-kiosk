@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { ServiceItem, ExtraProduct, CartItem, Order, PaymentMethod, BarberSettings } from './types';
+import { useState, useEffect } from 'react';
+import { ServiceItem, ExtraProduct, CartItem, Order, PaymentMethod, BarberSettings, TurnType } from './types';
 import { DEFAULT_BARBER_SETTINGS } from './data/catalog';
-import { createOrder } from './services/orders';
+import { createOrder, subscribeToOrders, openWhatsAppDirectly } from './services/orders';
 import { KioskHeader } from './components/KioskHeader';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { ServiceSelector } from './components/ServiceSelector';
@@ -11,6 +11,7 @@ import { CartDrawer } from './components/CartDrawer';
 import { PaymentModal } from './components/PaymentModal';
 import { SuccessScreen } from './components/SuccessScreen';
 import { BarberDashboard } from './components/BarberDashboard';
+import { QueueModal } from './components/QueueModal';
 
 export function App() {
   const [currentView, setCurrentView] = useState<'welcome' | 'catalog' | 'success' | 'dashboard'>('welcome');
@@ -20,11 +21,22 @@ export function App() {
   const [showCrossSelling, setShowCrossSelling] = useState(false);
   const [showCartDrawer, setShowCartDrawer] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showQueueModal, setShowQueueModal] = useState(false);
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+  const [activeOrdersCount, setActiveOrdersCount] = useState(0);
   const [settings, setSettings] = useState<BarberSettings>(() => {
     const saved = localStorage.getItem('barberjeff_settings');
     return saved ? JSON.parse(saved) : DEFAULT_BARBER_SETTINGS;
   });
+
+  // Track active orders count for queue button badge
+  useEffect(() => {
+    const unsubscribe = subscribeToOrders((allOrders) => {
+      const active = allOrders.filter((o) => o.status === 'pending' || o.status === 'in_progress').length;
+      setActiveOrdersCount(active);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleUpdateSettings = (newSettings: BarberSettings) => {
     setSettings(newSettings);
@@ -91,12 +103,16 @@ export function App() {
     customerName: string;
     customerPhone: string;
     paymentMethod: PaymentMethod;
+    turnType?: TurnType;
+    preferredTime?: string;
     notes?: string;
   }) => {
     const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const created = await createOrder({
       customerName: orderData.customerName,
       customerPhone: orderData.customerPhone,
+      turnType: orderData.turnType || 'sala_espera',
+      preferredTime: orderData.preferredTime,
       paymentMethod: orderData.paymentMethod,
       items: cartItems,
       total,
@@ -107,6 +123,9 @@ export function App() {
     setCartItems([]);
     setShowPaymentModal(false);
     setCurrentView('success');
+
+    // Automatically trigger WhatsApp in background/tab
+    openWhatsAppDirectly(created, settings);
   };
 
   const handleResetKiosk = () => {
@@ -130,13 +149,15 @@ export function App() {
   }
 
   return (
-    <div className="min-h-screen bg-dark-900 text-white flex flex-col selection:bg-gold-500 selection:text-dark-900">
+    <div className="min-h-screen bg-black text-white flex flex-col selection:bg-gold-500 selection:text-black">
       {/* Kiosk Header (Always present in kiosk mode) */}
       <KioskHeader
         settings={settings}
         cartCount={cartCount}
         onOpenCart={() => setShowCartDrawer(true)}
         onGoToDashboard={() => setCurrentView('dashboard')}
+        onOpenQueue={() => setShowQueueModal(true)}
+        activeOrdersCount={activeOrdersCount}
       />
 
       {/* Main View Area */}
@@ -213,6 +234,15 @@ export function App() {
           onSubmitOrder={handleSubmitOrder}
         />
       )}
+
+      <QueueModal
+        isOpen={showQueueModal}
+        onClose={() => setShowQueueModal(false)}
+        onOpenAdmin={() => {
+          setShowQueueModal(false);
+          setCurrentView('dashboard');
+        }}
+      />
     </div>
   );
 }
